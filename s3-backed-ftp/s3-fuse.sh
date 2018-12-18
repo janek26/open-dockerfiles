@@ -34,8 +34,6 @@ fi
 if curl -s http://instance-data.ec2.internal > /dev/null ; then
   IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
   sed -i "s/^pasv_address=/pasv_address=$IP/" /etc/vsftpd.conf
-else
-  exit 1
 fi
 
 # start s3 fuse
