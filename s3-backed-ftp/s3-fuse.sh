@@ -40,4 +40,4 @@ fi
 # Code above is not needed if the IAM role is attaced to EC2 instance 
 # s3fs provides the iam_role option to grab those credentials automatically
 /usr/local/bin/s3fs $FTP_BUCKET /home/aws/s3bucket -ourl=https://ams3.digitaloceanspaces.com -ouse_cache=/tmp -o allow_other -o mp_umask="0022" -o iam_role="$IAM_ROLE" #-d -d -f -o f2 -o curldbg
-/usr/local/users.sh
+#/usr/local/users.sh
