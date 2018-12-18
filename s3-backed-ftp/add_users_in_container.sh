@@ -24,7 +24,7 @@ add_users() {
     # If account exists set password again 
     # In cases where password changes in env file
     if getent passwd "$username" >/dev/null 2>&1; then
-      echo $u | chpasswd -e
+      echo $u | chpasswd
 
       # Fix for issue when pulling files that were uploaded directly to S3 (through aws web console)
       # Permissions when uploaded directly through S3 Web client were set as:
