@@ -4,7 +4,7 @@
 
 FTP_DIRECTORY="/home/aws/s3bucket/ftp-users"
 CONFIG_FILE="env.list" # May need to modify config file name to reflect future changes in env file location/name
-SLEEP_DURATION=60
+SLEEP_DURATION=5
 # Change theses next two variables to set different permissions for files/directories
 # These were default from vsftpd so change accordingly if necessary
 FILE_PERMISSIONS=644
@@ -12,7 +12,11 @@ DIRECTORY_PERMISSIONS=755
 
 add_users() {
   aws s3 cp s3://$CONFIG_BUCKET/$CONFIG_FILE ~/$CONFIG_FILE
-  USERS=$(cat ~/"$CONFIG_FILE" | grep USERS | cut -d '=' -f2)
+  MONGO_CONNECTION_STRING=$(cat ~/"$CONFIG_FILE" | grep MONGO_CONNECTION_STRING | cut -d '=' -f2)
+  MONGO_USERNAME=$(cat ~/"$CONFIG_FILE" | grep MONGO_USERNAME | cut -d '=' -f2)
+  MONGO_PASSWORD=$(cat ~/"$CONFIG_FILE" | grep MONGO_PASSWORD | cut -d '=' -f2)
+  
+  USERS=$(mongo "$MONGO_CONNECTION_STRING" --username "$MONGO_USERNAME" --password "$MONGO_PASSWORD" --quiet --eval 'db.camera.find({}, {"ftpUser": 1, "ftpPass": 1, "_id": 0})' | grep '^{' | jq -s '.[]|join(":")' | tr '\n' ' ' | tr -d '"' | sed 's/^[ \t]*//;s/[ \t]*$//')
 
   for u in $USERS; do
     read username passwd <<< $(echo $u | sed 's/:/ /g')
