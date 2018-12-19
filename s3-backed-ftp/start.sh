@@ -35,13 +35,10 @@ if curl -s http://instance-data.ec2.internal > /dev/null ; then
   IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
   sed -i "s/^pasv_address=/pasv_address=$IP/" /etc/vsftpd.conf
 elif [ ! -z $FTP_PASV_ADDRESS ]; then
-  sed -i "s/^pasv_address=/pasv_address=$FTP_PASV_ADDRESS/" /etc/vsftpd.conf
+  sed -i "s/^#pasv_address=/pasv_address=$FTP_PASV_ADDRESS/" /etc/vsftpd.conf
 fi
 
-FTP_DIRECTORY="/home/aws/s3bucket/ftp-users"
-
-# Create a group for ftp users
-getent group ftpaccess || groupadd ftpaccess
+FTP_DIRECTORY="/home"
 
 # Create a directory where all ftp/sftp users home directories will go
 mkdir -p $FTP_DIRECTORY
@@ -51,5 +48,4 @@ chmod 755 $FTP_DIRECTORY
 # start s3 fuse
 # Code above is not needed if the IAM role is attaced to EC2 instance 
 # s3fs provides the iam_role option to grab those credentials automatically
-s3fs $FTP_BUCKET /home/aws/s3bucket -ourl=https://ams3.digitaloceanspaces.com -ouse_cache=/tmp -o allow_other -d -d -f -o f2 -o curldbg -o nonempty
-#/usr/local/users.sh
+s3fs -f -d $FTP_BUCKET $FTP_DIRECTORY -ourl=https://ams3.digitaloceanspaces.com -ouse_cache=/tmp -o allow_other > /var/log/s3fs-start.log

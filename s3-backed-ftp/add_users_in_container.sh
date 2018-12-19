@@ -8,7 +8,7 @@ SLEEP_DURATION=5
 FILE_PERMISSIONS=644
 DIRECTORY_PERMISSIONS=755
 
-FTP_DIRECTORY="/home/aws/s3bucket/ftp-users"
+FTP_DIRECTORY="/home"
 
 add_users() {
   USERS=$(mongo "$MONGO_CONNECTION_STRING" --username "$MONGO_USERNAME" --password "$MONGO_PASSWORD" --quiet --eval 'db.camera.find({}, {"ftpUser": 1, "ftpPass": 1, "_id": 0})' | grep '^{' | jq -s '.[]|join(":")' | tr '\n' ' ' | tr -d '"' | sed 's/^[ \t]*//;s/[ \t]*$//')
@@ -51,6 +51,6 @@ add_users() {
 }
 
  while true; do
-   add_users
    sleep $SLEEP_DURATION
+   add_users
  done
