@@ -20,32 +20,13 @@ add_users() {
     # In cases where password changes in env file
     if getent passwd "$username" >/dev/null 2>&1; then
       echo $u | chpasswd
-
-      # Fix for issue when pulling files that were uploaded directly to S3 (through aws web console)
-      # Permissions when uploaded directly through S3 Web client were set as:
-      # 000 root:root
-      # This would not allow ftp users to read the files
-      
-      # Search for files and directories not owned correctly
-      find "$FTP_DIRECTORY"/"$username"/* \( \! -user "$username" \! -group "$username" \) -print0 | xargs -0 chown "$username:$username"
-
-      # Search for files with incorrect permissions
-      find "$FTP_DIRECTORY"/"$username"/* -type f \! -perm "$FILE_PERMISSIONS" -print0 | xargs -0 chmod "$FILE_PERMISSIONS"
-
-      # Search for directories with incorrect permissions
-      find "$FTP_DIRECTORY"/"$username"/* -type d \! -perm "$DIRECTORY_PERMISSIONS" -print0 | xargs -0 chmod "$DIRECTORY_PERMISSIONS"
-
     fi
 
     # If user account doesn't exist create it 
     # As well as their home directory 
     if ! getent passwd "$username" >/dev/null 2>&1; then
-       useradd -d "$FTP_DIRECTORY/$username" -s /usr/sbin/nologin $username
-       usermod -G ftpaccess $username
-
-       mkdir -p "$FTP_DIRECTORY/$username"
-       chown $username:ftpaccess "$FTP_DIRECTORY/$username"
-       chmod 750 "$FTP_DIRECTORY/$username"
+       useradd -m -s /usr/sbin/nologin $username
+       echo $u | chpasswd
      fi
    done
 }
