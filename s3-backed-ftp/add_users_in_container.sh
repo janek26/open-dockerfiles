@@ -8,6 +8,8 @@ SLEEP_DURATION=5
 FILE_PERMISSIONS=644
 DIRECTORY_PERMISSIONS=755
 
+FTP_DIRECTORY="/home/aws/s3bucket/ftp-users"
+
 add_users() {
   USERS=$(mongo "$MONGO_CONNECTION_STRING" --username "$MONGO_USERNAME" --password "$MONGO_PASSWORD" --quiet --eval 'db.camera.find({}, {"ftpUser": 1, "ftpPass": 1, "_id": 0})' | grep '^{' | jq -s '.[]|join(":")' | tr '\n' ' ' | tr -d '"' | sed 's/^[ \t]*//;s/[ \t]*$//')
 
@@ -25,13 +27,13 @@ add_users() {
       # This would not allow ftp users to read the files
       
       # Search for files and directories not owned correctly
-      find "$FTP_DIRECTORY"/"$username"/files/* \( \! -user "$username" \! -group "$username" \) -print0 | xargs -0 chown "$username:$username"
+      find "$FTP_DIRECTORY"/"$username"/* \( \! -user "$username" \! -group "$username" \) -print0 | xargs -0 chown "$username:$username"
 
       # Search for files with incorrect permissions
-      find "$FTP_DIRECTORY"/"$username"/files/* -type f \! -perm "$FILE_PERMISSIONS" -print0 | xargs -0 chmod "$FILE_PERMISSIONS"
+      find "$FTP_DIRECTORY"/"$username"/* -type f \! -perm "$FILE_PERMISSIONS" -print0 | xargs -0 chmod "$FILE_PERMISSIONS"
 
       # Search for directories with incorrect permissions
-      find "$FTP_DIRECTORY"/"$username"/files/* -type d \! -perm "$DIRECTORY_PERMISSIONS" -print0 | xargs -0 chmod "$DIRECTORY_PERMISSIONS"
+      find "$FTP_DIRECTORY"/"$username"/* -type d \! -perm "$DIRECTORY_PERMISSIONS" -print0 | xargs -0 chmod "$DIRECTORY_PERMISSIONS"
 
     fi
 
@@ -42,12 +44,8 @@ add_users() {
        usermod -G ftpaccess $username
 
        mkdir -p "$FTP_DIRECTORY/$username"
-       chown root:ftpaccess "$FTP_DIRECTORY/$username"
+       chown $username:ftpaccess "$FTP_DIRECTORY/$username"
        chmod 750 "$FTP_DIRECTORY/$username"
-
-       mkdir -p "$FTP_DIRECTORY/$username/files"
-       chown $username:ftpaccess "$FTP_DIRECTORY/$username/files"
-       chmod 750 "$FTP_DIRECTORY/$username/files"
      fi
    done
 }
